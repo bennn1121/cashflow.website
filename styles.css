@@ -1,0 +1,617 @@
+/* ============================================================
+   Ledgerline — "the ledger at night"
+   ============================================================ */
+
+:root {
+  --bg: #0A0E0C;
+  --panel: rgba(13, 18, 16, 0.86);
+  --grid-glow: #2F9E6E;
+  --shortfall-glow: #FF5C4A;
+  --text: #EDEFEA;
+  --muted: #8A9490;
+  --cta-text: #0A0E0C;
+  --hairline: rgba(138, 148, 144, 0.22);
+
+  --font-head: 'Fraunces', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --container: 900px;
+}
+
+/* ============================================================
+   Reset
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img, svg { display: block; max-width: 100%; }
+
+a { color: inherit; }
+
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+h1, h2, h3, p, figure { margin: 0; }
+
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+
+.wrap {
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 16px;
+  z-index: 1000;
+}
+.skip-link:focus { left: 16px; top: 16px; }
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--shortfall-glow);
+  outline-offset: 3px;
+}
+
+html.js-smooth-scroll { scroll-behavior: smooth; }
+
+/* ============================================================
+   Typography
+   ============================================================ */
+
+h1, h2, h3 {
+  font-family: var(--font-head);
+  font-weight: 500;
+  font-variation-settings: "opsz" 30;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 5.6vw + 1rem, 5.625rem);
+  letter-spacing: -0.025em;
+  max-width: 15ch;
+}
+
+h2 {
+  font-size: clamp(1.6rem, 2.4vw + 0.9rem, 2.3rem);
+  letter-spacing: -0.015em;
+  margin-bottom: 30px;
+}
+
+h3 { font-size: 1.05rem; font-weight: 500; }
+
+p { max-width: 66ch; }
+
+.lede {
+  font-size: clamp(1.15rem, 1.2vw + 0.9rem, 1.4rem);
+  max-width: 52ch;
+  color: var(--text);
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   Buttons / links
+   ============================================================ */
+
+.btn {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.98rem;
+  padding: 14px 28px;
+  border-radius: 3px;
+  text-decoration: none;
+  background: var(--grid-glow);
+  color: var(--cta-text);
+  box-shadow: 0 0 0 rgba(47, 158, 110, 0);
+  transition: box-shadow 0.25s ease, transform 0.25s ease, background 0.25s ease;
+}
+
+.btn:hover {
+  box-shadow: 0 0 28px rgba(47, 158, 110, 0.55);
+  transform: translateY(-1px);
+}
+
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--text);
+  border-bottom: 1px solid var(--muted);
+  padding-bottom: 2px;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.btn-link:hover { border-bottom-color: var(--grid-glow); color: var(--grid-glow); }
+
+/* ============================================================
+   3D hero canvas — fixed, full-bleed, behind everything
+   ============================================================ */
+
+#heroCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  display: block;
+  background: var(--bg);
+}
+
+html.tier-fallback #heroCanvas { display: none; }
+
+/* ============================================================
+   Header
+   ============================================================ */
+
+.site-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background 0.35s ease, border-color 0.35s ease;
+}
+
+.site-header.is-scrolled {
+  background: rgba(10, 14, 12, 0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 18px;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.logo-mark { color: var(--grid-glow); flex-shrink: 0; }
+
+.logo-word {
+  font-family: var(--font-head);
+  font-weight: 500;
+  font-variation-settings: "opsz" 18;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+}
+.logo-word.small { font-size: 1.05rem; }
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.site-nav a {
+  text-decoration: none;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+.site-nav a:not(.btn):hover { color: var(--grid-glow); }
+
+.nav-cta { padding: 10px 20px; font-size: 0.92rem; }
+
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+}
+.nav-toggle-bar {
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  display: block;
+}
+
+/* ============================================================
+   Hero
+   ============================================================ */
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: 90px;
+  padding-bottom: 90px;
+}
+
+.hero-inner { position: relative; z-index: 2; }
+
+.hero-headline,
+.hero-sub,
+.hero-ctas {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+html.reduced-motion .hero-headline,
+html.reduced-motion .hero-sub,
+html.reduced-motion .hero-ctas {
+  opacity: 1;
+  transform: none;
+}
+
+.hero-sub {
+  margin-top: 22px;
+  font-size: clamp(1.05rem, 0.5vw + 0.95rem, 1.25rem);
+  color: var(--muted);
+  max-width: 52ch;
+}
+
+.hero-ctas {
+  margin-top: 36px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+/* Screen-space dip callout, positioned by hero-scene.js */
+.chart-callout {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  transition: opacity 0.5s ease;
+}
+.chart-callout.is-visible { opacity: 1; }
+
+.chart-callout-label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+}
+
+.chart-callout-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--shortfall-glow);
+  text-shadow: 0 0 16px rgba(255, 92, 74, 0.85), 0 0 40px rgba(255, 92, 74, 0.4);
+}
+
+html.tier-fallback .chart-callout,
+html.reduced-motion .chart-callout { display: none; }
+
+/* ============================================================
+   Fallback dark SVG chart (no WebGL / reduced-motion / low-power)
+   ============================================================ */
+
+.fallback-chart {
+  display: none;
+  position: relative;
+  margin-top: 56px;
+  max-width: 700px;
+}
+html.tier-fallback .fallback-chart { display: block; }
+
+.fallback-svg {
+  width: 100%;
+  height: auto;
+}
+
+.fallback-shortfall-band {
+  fill: var(--shortfall-glow);
+  opacity: 0.05;
+}
+
+.fallback-zero-line {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+  opacity: 0.4;
+}
+
+.fallback-line {
+  stroke: var(--grid-glow);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fallback-dot {
+  fill: var(--bg);
+  stroke: var(--shortfall-glow);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px rgba(255, 92, 74, 0.8));
+}
+
+.fallback-callout {
+  position: absolute;
+  left: 65%;
+  top: 78%;
+  transform: translateX(-50%);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.fallback-callout.is-visible { opacity: 1; }
+
+html.reduced-motion .fallback-callout { transition: none; }
+
+/* ============================================================
+   Sections — translucent panels over the persisting 3D grid
+   ============================================================ */
+
+.section {
+  position: relative;
+  z-index: 2;
+  padding-block: 80px;
+  background: var(--panel);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--hairline);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+}
+html.reduced-motion .reveal {
+  transform: none;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+html:not(.reduced-motion) .reveal.is-visible {
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+html.reduced-motion .reveal.is-visible {
+  transition: opacity 0.5s ease;
+}
+
+/* Problem */
+
+.scenario-list {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 60ch;
+}
+.scenario-list li {
+  color: var(--muted);
+  font-size: 1.02rem;
+  padding-left: 18px;
+  border-left: 2px solid rgba(47, 158, 110, 0.5);
+}
+
+/* How it works */
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 60ch;
+}
+.steps-list li {
+  display: flex;
+  gap: 20px;
+  align-items: baseline;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+}
+.steps-list li:first-child { padding-top: 0; border-top: none; }
+
+.step-number {
+  color: var(--grid-glow);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  width: 2.4ch;
+  text-shadow: 0 0 10px rgba(47, 158, 110, 0.6);
+}
+
+.step-text { font-size: 1.05rem; }
+
+/* Feature list */
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  max-width: 64ch;
+}
+.feature-list li {
+  padding-block: 22px;
+  border-top: 1px solid var(--hairline);
+}
+.feature-list li:last-child { border-bottom: 1px solid var(--hairline); }
+
+.feature-title {
+  font-weight: 500;
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+.feature-desc {
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+/* Pricing */
+
+.price-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 8px;
+}
+.price-amount {
+  font-size: 2.6rem;
+  font-weight: 500;
+  color: var(--grid-glow);
+  text-shadow: 0 0 20px rgba(47, 158, 110, 0.5);
+}
+.price-period {
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+.price-detail {
+  margin-top: 10px;
+  font-size: 1.1rem;
+}
+.price-note {
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+/* FAQ */
+
+.faq-list { max-width: 68ch; }
+
+.faq-item { border-top: 1px solid var(--hairline); }
+.faq-item:last-child { border-bottom: 1px solid var(--hairline); }
+
+.faq-question {
+  width: 100%;
+  text-align: left;
+  padding-block: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: var(--font-head);
+  font-weight: 500;
+  font-variation-settings: "opsz" 14;
+  font-size: 1.08rem;
+}
+
+.faq-question::after {
+  content: "+";
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.faq-question[aria-expanded="true"]::after { content: "\2212"; }
+
+.faq-answer {
+  padding-bottom: 20px;
+  max-width: 60ch;
+  overflow: hidden;
+}
+.faq-answer p { color: var(--muted); }
+
+/* Footer CTA */
+
+.footer-cta h2 { max-width: 22ch; }
+.footer-cta .btn { margin-top: 8px; }
+
+.small-print {
+  margin-top: 14px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+/* Site footer */
+
+.site-footer {
+  position: relative;
+  z-index: 2;
+  background: var(--panel);
+  border-top: 1px solid var(--hairline);
+  padding-block: 28px;
+}
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footer-copy {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
+@media (max-width: 720px) {
+  .nav-toggle { display: flex; }
+
+  .site-nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(10, 14, 12, 0.96);
+    border-bottom: 1px solid var(--hairline);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding: 8px 24px 20px;
+    display: none;
+  }
+  .site-nav.is-open { display: flex; }
+  .site-nav a {
+    width: 100%;
+    padding-block: 12px;
+    border-top: 1px solid var(--hairline);
+  }
+  .site-nav a:first-child { border-top: none; }
+  .nav-cta { text-align: center; margin-top: 8px; }
+}
+
+@media (max-width: 480px) {
+  body { font-size: 16px; }
+  .section { padding-block: 56px; }
+  .hero { padding-top: 70px; padding-bottom: 70px; }
+}
+
+/* ============================================================
+   Reduced motion — global safety net
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.js-scroll-linked) { scroll-behavior: auto; }
+}

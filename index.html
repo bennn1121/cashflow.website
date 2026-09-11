@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledgerline — See the shortfall before it happens</title>
+<meta name="description" content="Ledgerline turns your bank transactions into a plain-English 13-week cash flow forecast, so you see a shortfall coming before it happens.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<script>
+  /* Synchronous capability detection — runs before paint so CSS can key off
+     the resulting classes with no flash of the wrong hero variant. */
+  (function () {
+    var html = document.documentElement;
+    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var hasWebGL = false;
+    try {
+      var testCanvas = document.createElement('canvas');
+      hasWebGL = !!(window.WebGLRenderingContext &&
+        (testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl')));
+    } catch (e) {
+      hasWebGL = false;
+    }
+
+    var isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    var isSmallViewport = window.innerWidth < 760;
+    var isLowCores = (navigator.hardwareConcurrency || 8) <= 4;
+    var isLowPower = isCoarsePointer && (isSmallViewport || isLowCores);
+
+    var useFallback = !hasWebGL || reducedMotion || isLowPower;
+
+    html.classList.add(useFallback ? 'tier-fallback' : 'tier-full');
+    if (reducedMotion) html.classList.add('reduced-motion');
+  })();
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<canvas id="heroCanvas" aria-hidden="true"></canvas>
+
+<header class="site-header" id="siteHeader">
+  <div class="wrap header-inner">
+    <a class="logo" href="#top" aria-label="Ledgerline home">
+      <svg class="logo-mark" viewBox="0 0 32 20" width="30" height="18" aria-hidden="true">
+        <line x1="2" y1="14" x2="30" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M19 14 L24 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+      <span class="logo-word">Ledgerline</span>
+    </a>
+
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">
+      <span class="nav-toggle-bar"></span>
+      <span class="nav-toggle-bar"></span>
+      <span class="nav-toggle-bar"></span>
+      <span class="visually-hidden">Menu</span>
+    </button>
+
+    <nav class="site-nav" id="siteNav">
+      <a href="#product">Product</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn btn-primary nav-cta" href="#footer-cta">Start forecasting</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero" id="top">
+    <div class="wrap hero-inner">
+      <h1 class="hero-headline">See the shortfall before it happens.</h1>
+      <p class="hero-sub">Ledgerline turns your bank transactions into a 13-week cash flow forecast — plain English, updated daily, no spreadsheet required.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#footer-cta">Start your free forecast</a>
+        <a class="btn-link" href="#how-it-works">See how it works</a>
+      </div>
+
+      <!-- Fallback: dark ledger chart for no-WebGL / reduced-motion / low-power -->
+      <figure class="fallback-chart" id="fallbackChart">
+        <figcaption class="visually-hidden">
+          Line chart of a 13-week cash balance forecast. The balance declines steadily from week one,
+          crosses into a shortfall around week eight, reaching a low of negative $4,200 in week nine,
+          then recovers through week thirteen.
+        </figcaption>
+        <svg class="fallback-svg" viewBox="0 0 800 340" role="img" aria-hidden="true">
+          <defs>
+            <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
+              <feMerge>
+                <feMergeNode in="blur"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+              </feMerge>
+            </filter>
+          </defs>
+          <rect x="0" y="187" width="800" height="93" class="fallback-shortfall-band"></rect>
+          <line x1="20" y1="187" x2="780" y2="187" class="fallback-zero-line"></line>
+          <path id="fallbackLine" class="fallback-line" filter="url(#glow)"
+            d="M40,38.6 L100,53.4 L160,66.4 L220,79.4 L280,101.7 L340,131.4 L400,164.9 L460,220.6 L520,265.1 L580,215 L640,153.7 L700,109.1 L760,60.9"
+            fill="none"></path>
+          <circle id="fallbackDot" cx="520" cy="265.1" r="5" class="fallback-dot"></circle>
+        </svg>
+        <div class="fallback-callout" id="fallbackCallout">
+          <span class="chart-callout-label">week 9 low</span>
+          <span class="chart-callout-value num" id="fallbackValue">$0</span>
+        </div>
+      </figure>
+    </div>
+
+    <!-- Screen-space readout for the 3D scene's dip point -->
+    <div class="chart-callout" id="chartCallout">
+      <span class="chart-callout-label">week 9 low</span>
+      <span class="chart-callout-value num" id="lowPointValue">$0</span>
+    </div>
+  </section>
+
+  <section class="section problem" id="product">
+    <div class="wrap">
+      <p class="lede reveal">Most small businesses don't run out of money because the business is failing. They run out because nobody saw the gap in the calendar until it was already there.</p>
+      <ul class="scenario-list">
+        <li class="reveal">You pay suppliers net-30, but your biggest customers pay net-60 — for a month, the gap is real money you don't have.</li>
+        <li class="reveal">A slow month lands the same week as a quarterly tax payment, and both come due at once.</li>
+        <li class="reveal">Payroll hits on the 15th. So does your largest vendor invoice. Neither one waits for the other.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section how-it-works" id="how-it-works">
+    <div class="wrap">
+      <h2 class="reveal">How it works</h2>
+      <ol class="steps-list">
+        <li class="reveal">
+          <span class="step-number num">01</span>
+          <span class="step-text">Connect your bank account (read-only) or upload a CSV.</span>
+        </li>
+        <li class="reveal">
+          <span class="step-number num">02</span>
+          <span class="step-text">Ledgerline builds a rolling 13-week forecast from your real payment patterns.</span>
+        </li>
+        <li class="reveal">
+          <span class="step-number num">03</span>
+          <span class="step-text">Get a plain-English alert days or weeks before a shortfall, with what's driving it.</span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section features">
+    <div class="wrap">
+      <h2 class="reveal">What you get</h2>
+      <ul class="feature-list">
+        <li class="reveal">
+          <p class="feature-title">13-week rolling forecast, updated every night</p>
+          <p class="feature-desc">A fresh projection every morning, built from what actually happened yesterday.</p>
+        </li>
+        <li class="reveal">
+          <p class="feature-title">Plain-English shortfall alerts, not just a red number</p>
+          <p class="feature-desc">You get a sentence explaining what's happening, not just a chart to interpret.</p>
+        </li>
+        <li class="reveal">
+          <p class="feature-title">See exactly which invoice or expense is driving a dip</p>
+          <p class="feature-desc">Click into any low point and see the transactions behind it.</p>
+        </li>
+        <li class="reveal">
+          <p class="feature-title">Works with multiple accounts and currencies</p>
+          <p class="feature-desc">Forecast across every account you actually use to run the business.</p>
+        </li>
+        <li class="reveal">
+          <p class="feature-title">Export anything to a real spreadsheet when you need to</p>
+          <p class="feature-desc">Nothing is locked in — pull any forecast into a CSV in one click.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section pricing" id="pricing">
+    <div class="wrap">
+      <h2 class="reveal">Pricing</h2>
+      <p class="price-line reveal"><span class="num price-amount">$29</span><span class="price-period">/month</span></p>
+      <p class="price-detail reveal">One business, unlimited forecasts, cancel anytime.</p>
+      <p class="price-note reveal">This replaces guessing, not a bookkeeper.</p>
+    </div>
+  </section>
+
+  <section class="section faq" id="faq">
+    <div class="wrap">
+      <h2 class="reveal">FAQ</h2>
+      <div class="faq-list" id="faqList">
+        <div class="faq-item reveal">
+          <h3>
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-a1" id="faq-q1">
+              Is this instead of an accountant?
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-a1" role="region" aria-labelledby="faq-q1" hidden>
+            <p>No — it's what you check before you call one. Ledgerline tells you when to pick up the phone; your accountant tells you what to do about it.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal">
+          <h3>
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-a2" id="faq-q2">
+              What if I don't want to connect my bank?
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-a2" role="region" aria-labelledby="faq-q2" hidden>
+            <p>CSV upload works fully. Export your transactions from your bank or bookkeeping software and upload them directly — every feature works the same way.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal">
+          <h3>
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-a3" id="faq-q3">
+              Is my data safe?
+            </button>
+          </h3>
+          <div class="faq-answer" id="faq-a3" role="region" aria-labelledby="faq-q3" hidden>
+            <p>Yes. Bank connections are read-only — Ledgerline can never move money. Everything is encrypted at bank-level standards, in transit and at rest.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section footer-cta" id="footer-cta">
+    <div class="wrap">
+      <h2 class="reveal">See the shortfall before it happens.</h2>
+      <a class="btn btn-primary reveal" href="#top">Start your free forecast</a>
+      <p class="small-print reveal">No credit card required for the 14-day trial.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span class="logo-word small">Ledgerline</span>
+    <span class="footer-copy">© 2026 Ledgerline.</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="hero-scene.js"></script>
+<script src="main.js" defer></script>
+</body>
+</html>
